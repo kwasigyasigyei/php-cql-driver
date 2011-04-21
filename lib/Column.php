@@ -15,7 +15,7 @@
  *    and getValue() as I've done here.
  */
 class Column
-{
+{ 
     /**
      * Column name
      * @var string
