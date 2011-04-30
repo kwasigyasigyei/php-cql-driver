@@ -1,4 +1,13 @@
 <?php
+
+$GLOBALS['THRIFT_ROOT'] = 'thrift';
+require_once $GLOBALS['THRIFT_ROOT'] . '/packages/cassandra/Cassandra.php';
+require_once $GLOBALS['THRIFT_ROOT'] . '/packages/cassandra/cassandra_types.php';
+require_once $GLOBALS['THRIFT_ROOT'] . '/transport/TSocket.php';
+require_once $GLOBALS['THRIFT_ROOT'] . '/protocol/TBinaryProtocol.php';
+require_once $GLOBALS['THRIFT_ROOT'] . '/transport/TFramedTransport.php';
+require_once $GLOBALS['THRIFT_ROOT'] . '/transport/TBufferedTransport.php';
+
 /**
  * Represents a single connection to a single server
  *
@@ -28,9 +37,22 @@
  */
 class Connection
 {
+
+    private $host;
+    private $port;
+    private $keyspace;
+    private $username;
+    private $password;
+    private $decoder;
+    /**
+     *
+     * @var CassandraClient
+     */
+    private $client;
+
     /**
      * Constructor
-     *
+     * 
      * @param string $host                      Hostname of Cassandra node.
      * @param integer $port                     Port number to connect to (optional).
      * @param string|NULL $keyspace             Keyspace name (optional).
@@ -39,15 +61,62 @@ class Connection
      * @param DecoderInterface|NULL $decoder    Result decoder instance (optional, defaults to none).
      */
     public function __construct(
-            $host,
-            $port = 9160,
-            $keyspace = NULL,
-            $username = NULL,
-            $password = NULL,
-            DecoderInterface $decoder = NULL
-            )
+    $host="127.0.0.1",
+    $port = 9160,
+    $keyspace = NULL,
+    $username = NULL,
+    $password = NULL,
+    DecoderInterface $decoder = NULL
+    )
     {
-        
+        $this->host = $host;
+        $this->port = $port;
+        $this->keyspace = $keyspace;
+        $this->username = $username;
+        $this->password = $password;
+        $this->decoder = $decoder;
+        $this->connect();
+    }
+
+    /**
+     * Open the thrift connection and init the client object
+     */
+    private function connect()
+    {
+        //Since we're trying to hide thrift and expose CQL, should we
+        //be catching this? Or should it still be left for users to catch
+        //and handle...I think we should catch thrift errors TBH and only
+        //through exceptions for the client to handle when they are more
+        //related to CQL
+//        try
+//        {
+        // Make a connection to the Thrift interface to Cassandra
+        $socket = new TSocket($this->host, $this->port);
+        $transport = new TFramedTransport($socket, true, true);
+        $protocol = new TBinaryProtocolAccelerated($transport);
+        $this->client = new CassandraClient($protocol);
+        $transport->open();
+        if ($this->username != NULL)
+        {
+            $request = new cassandra_AuthenticationRequest(array("credentials" =>
+                        array("username" => $this->username, "password" => $this->password)));
+            $this->client->login($request);
+        }
+//        }
+//        catch (TException $tx)
+//        {
+//            print 'TException: ' . $tx->getMessage() . ' Error: ' . $tx->getMessage() . "\n";
+//        }
+    }
+
+    /**
+     * I can't imagine we'll expose all the thrift methods,
+     * may be convenient to provide access to the raw Thrift object
+     * @return CassandraClient 
+     */
+    public function getRawThriftClient()
+    {
+        return $this->client;
     }
 
     /**
@@ -64,10 +133,11 @@ class Connection
      * @throws <something> If the query is empty (?) [fail early principle]
      */
     public function prepare(
-            $query,
-            array $args = array()
-            )
+    $query,
+    array $args = array()
+    )
     {
+        
     }
 
     /**
@@ -81,12 +151,12 @@ class Connection
      * @throws CQL/InternalApplicationError
      */
     public function execute(
-            $query,
-            array $args = array(),
-            array $kwargs = array()
-            )
+    $query,
+    array $args = array(),
+    array $kwargs = array()
+    )
     {
-    
+        
     }
 
     /**
@@ -96,7 +166,7 @@ class Connection
      */
     public function isOpen()
     {
-
+        
     }
 
     /**
@@ -106,4 +176,5 @@ class Connection
     {
         
     }
+
 }
