@@ -52,7 +52,7 @@ class Connection
 
     /**
      * Constructor
-     * 
+     *
      * @param string $host                      Hostname of Cassandra node.
      * @param integer $port                     Port number to connect to (optional).
      * @param string|NULL $keyspace             Keyspace name (optional).
@@ -112,7 +112,7 @@ class Connection
     /**
      * I can't imagine we'll expose all the thrift methods,
      * may be convenient to provide access to the raw Thrift object
-     * @return CassandraClient 
+     * @return CassandraClient
      */
     public function getRawThriftClient()
     {
@@ -137,7 +137,7 @@ class Connection
     array $args = array()
     )
     {
-        
+
     }
 
     /**
@@ -156,7 +156,7 @@ class Connection
     array $kwargs = array()
     )
     {
-        
+
     }
 
     /**
@@ -166,7 +166,7 @@ class Connection
      */
     public function isOpen()
     {
-        
+
     }
 
     /**
@@ -174,7 +174,7 @@ class Connection
      */
     public function close()
     {
-        
+
     }
 
 }
